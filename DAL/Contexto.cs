@@ -1,11 +1,26 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using RegistroPedidos.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace RegistroPedidos.DAL
 {
-    public class Contexto
+    public class Contexto : DbContext
     {
+        public DbSet<Suplidores> Suplidores { get; set; }
+        public DbSet<Productos> Productos { get; set; }
+        public DbSet<Ordenes> Ordenes { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlite(@"Data Source = Data/Ordenes.db");
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Suplidores>();
+        }
     }
 }
