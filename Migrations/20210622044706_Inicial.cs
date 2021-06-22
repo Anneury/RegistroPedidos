@@ -57,9 +57,9 @@ namespace RegistroPedidos.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     OrdenId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ProductoId = table.Column<int>(type: "INTEGER", nullable: false),
                     Cantidad = table.Column<int>(type: "INTEGER", nullable: false),
-                    Costo = table.Column<float>(type: "REAL", nullable: false),
-                    ProductoId = table.Column<int>(type: "INTEGER", nullable: true)
+                    Costo = table.Column<float>(type: "REAL", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -75,7 +75,7 @@ namespace RegistroPedidos.Migrations
                         column: x => x.ProductoId,
                         principalTable: "Productos",
                         principalColumn: "ProductoId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(

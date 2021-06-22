@@ -51,7 +51,7 @@ namespace RegistroPedidos.Migrations
                     b.Property<int>("OrdenId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ProductoId")
+                    b.Property<int>("ProductoId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -187,7 +187,9 @@ namespace RegistroPedidos.Migrations
 
                     b.HasOne("RegistroPedidos.Models.Productos", "Producto")
                         .WithMany()
-                        .HasForeignKey("ProductoId");
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Producto");
                 });

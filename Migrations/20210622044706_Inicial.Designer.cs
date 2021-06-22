@@ -9,7 +9,7 @@ using RegistroPedidos.DAL;
 namespace RegistroPedidos.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20210620023526_Inicial")]
+    [Migration("20210622044706_Inicial")]
     partial class Inicial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,7 +53,7 @@ namespace RegistroPedidos.Migrations
                     b.Property<int>("OrdenId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ProductoId")
+                    b.Property<int>("ProductoId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -189,7 +189,9 @@ namespace RegistroPedidos.Migrations
 
                     b.HasOne("RegistroPedidos.Models.Productos", "Producto")
                         .WithMany()
-                        .HasForeignKey("ProductoId");
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Producto");
                 });

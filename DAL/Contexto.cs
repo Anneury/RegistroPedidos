@@ -50,7 +50,7 @@ namespace RegistroPedidos.DAL
                 Nombres = "Andrea Costas"
             });
 
-            //Productos---------------------------------------------------------------------------------
+            //Productos----------------------------------------------------------------------
             modelBuilder.Entity<Productos>().HasData(new Productos
             {
                 ProductoId = 1,
