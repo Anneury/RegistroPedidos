@@ -21,5 +21,14 @@ namespace RegistroPedidos.Models
 
         [ForeignKey("OrdenId")]
         public virtual List<OrdenesDetalle> Detalle { get; set; }
+
+        public Ordenes()
+        {
+            OrdenId = 0;
+            Fecha = DateTime.Now.Date;
+            SuplidorId = 0;
+            Monto = 0;
+            Detalle = new List<OrdenesDetalle>();
+        }
     }
 }
