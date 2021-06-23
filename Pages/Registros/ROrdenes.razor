@@ -3,9 +3,11 @@
 
 @using RegistroPedidos.BLL
 @using RegistroPedidos.Models
+@using Blazored.Toast
+@using Blazored.Toast.Services
 @inject IToastService Toast
 
-<EditForm Model="Orden" OnInvalidSubmit="Guardar">
+<EditForm Model="Orden" OnValidSubmit="Guardar">
     <DataAnnotationsValidator />
     <div class="card">
         <div class="card-header">
@@ -17,10 +19,17 @@
                     <div class="col">
                         <div class="form-group">
                             <label>Orden Id</label>
-                            <InputNumber @bind-Value="this.OrdenId" class="form-control" />
-                            <div class="input-group-append">
-                                <button type="button" style="z-index:0" class="btn btn-primary" @onclick="Buscar">Buscar</button>
+                            <div class="input-group">
+                                <InputNumber @bind-Value="Orden.OrdenId" class="form-control" />
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-info" @onclick="Buscar">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="14" fill="spacegray" class="bi bi-search" viewBox="0 0 16 16">
+                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                                        </svg>Buscar
+                                    </button>
+                                </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -34,7 +43,8 @@
                 @*Suplidor*@
                 <div class="form-group">
                     <label>Suplidor</label>
-                    <InputSelect @bind-Value="Orden.SuplidorId" clas="form-control">
+                    <InputSelect @bind-Value="Orden.SuplidorId" class="form-control">
+                        <option value="0" disabled selected>Seleccionar Suplidor</option>
                         @foreach (var item in ListaSuplidores)
                         {
                             <option value="@item.SuplidorId">@item.Nombres</option>
@@ -56,7 +66,8 @@
             <div class="row">
                 <div class="col form-group">
                     <label>Producto</label>
-                    <InputSelect @bind-Value="Detalle.ProductoId" class="form-control" @onclick="GetProductos">
+                    <InputSelect @bind-Value="ProductoSeleccionado" class="form-control" @onclick="EncontrarCosto">
+                        <option value="0" disabled selected>Seleccionar Producto</option>
                         @foreach (var item in ListaProductos)
                         {
                             <option value="@item.ProductoId">@item.Descripcion</option>
@@ -66,20 +77,18 @@
 
                 <div class="col form-group">
                     <label>Costo</label>
-                    <InputNumber @bind-Value="Producto.Costo" class="form-control" readonly="true" />
+                    <InputNumber @bind-Value="PrecioProducto" class="form-control" readonly="true" />
                 </div>
 
                 <div class="col form-group">
                     <label>Cantidad</label>
-                    <input type="number" @bind="Cantidad" class="form-control" id="CantidadInput" @oninput="@CalcularChanged" />
-                </div>
-
-                <div class="col form-group">
-                    <label>Total</label>
                     <div class="input-group">
-                        <InputNumber @bind-Value="Total" class="form-control" readonly />
+                        <InputNumber @bind-Value="Cantidad" class="form-control" />
                         <div class="input-group-append">
-                            <button type="button" class="btn btn-success" @onclick="Agregar">Agregar</button>
+                            <button type="button" class="btn btn-success" @onclick="Agregar">
+                                <i class="oi oi-plus" />
+                                Agregar
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -106,24 +115,28 @@
                                 <td>@item.Costo</td>
                                 <td>@item.Cantidad</td>
                                 <td>@(item.Costo * item.Cantidad)</td>
-                                <td><button type="button" class="btn btn-danger" @onclick="() => Remover(item)">Remover</button></td>
+                                <td>
+                                    <button type="button" class="btn btn-danger" @onclick="(() => Remover(item))">
+                                        <i class="oi oi-trash accordion" />
+                                        Remover
+                                    </button>
+                                </td>
 
                             </tr>
                         }
                     </tbody>
                 </table>
 
-                @*Monto*@
-                <div class="form-group">
-                    <label>Monto</label>
-                    <InputNumber @bind-Value="Orden.Monto" class="form-group" readonly="true" />
-                </div>
-
             </div>
 
             @*Botones*@
 
             <div class="card-footer">
+                @*Monto*@
+                <div class="col form-group">
+                    <label>Monto</label>
+                    <InputNumber @bind-Value="Orden.Monto" class="form-control col-4" readonly="true" />
+                </div>
                 <div class="form-group text-center" display: inline-block>
 
                     <button type="button" class="btn btn-lg btn-primary" @onclick="Nuevo">
@@ -148,14 +161,17 @@
     [Parameter]
     public int OrdenId { get; set; }
 
-    public Ordenes Orden { get; set; }
+    Ordenes Orden = new Ordenes();
     public OrdenesDetalle Detalle { get; set; }
     public Productos Producto { get; set; }
     List<Suplidores> ListaSuplidores = new List<Suplidores>();
     List<Productos> ListaProductos = new List<Productos>();
+    List<Ordenes> ListaOrdenes = new List<Ordenes>();
 
     private int Cantidad = 0;
     private float Total = 0;
+    private float PrecioProducto = 0;
+    private int ProductoSeleccionado = 0;
 
     protected override void OnInitialized()
     {
@@ -165,9 +181,16 @@
     public void Nuevo()
     {
         Orden = new Ordenes();
+        Detalle = new OrdenesDetalle();
+        Producto = new Productos();
 
-        ListaProductos = ProductosBLL.GetList(e => true);
-        ListaSuplidores = SuplidoresBLL.GetList(e => true);
+        ListaProductos = ProductosBLL.GetList(e => true).ToList();
+        ListaSuplidores = SuplidoresBLL.GetList(e => true).ToList();
+
+        Cantidad = 0;
+        Total = 0;
+        PrecioProducto = 0;
+        ProductoSeleccionado = 0;
     }
 
     public void Guardar()
@@ -187,15 +210,20 @@
 
     public void Buscar()
     {
-        var Pedido = OrdenesBLL.Buscar(Orden.OrdenId);
-
-        if (Pedido != null)
-            this.Orden = Pedido;
-        else
+        if (Orden.OrdenId > 0)
         {
-            Toast.ShowError("Pedido no encontrado");
-            Nuevo();
+            var ordenes = OrdenesBLL.Buscar(Orden.OrdenId);
+
+            if (ordenes != null)
+                Orden = ordenes;
+            else
+            {
+                Toast.ShowError("Pedido no encontrado");
+                Nuevo();
+            }
         }
+        else
+            Toast.ShowWarning("Debe ingresar un Id para buscar");
     }
 
     public void GetProductos()
@@ -203,18 +231,14 @@
         ListaProductos = ProductosBLL.GetList(e => true);
     }
 
-    public void CalcularChanged()
+    private void CalcularChanged(ChangeEventArgs args)
     {
-        Total = Producto.Costo * Detalle.Cantidad;
+        Total = PrecioProducto * Cantidad;
     }
 
     public void Agregar()
     {
-        if (Detalle.ProductoId == 0)
-        {
-            Toast.ShowWarning("Debes seleccionar un producto.");
-            return;
-        }
+
 
         if (Cantidad <= 0)
         {
@@ -223,16 +247,19 @@
         }
         else
         {
+
             this.Orden.Detalle.Add(new OrdenesDetalle
             {
                 OrdenId = Orden.OrdenId,
-                ProductoId = Detalle.ProductoId,
-                Cantidad = this.Cantidad,
-                Costo = Detalle.Costo
+                ProductoId = ProductoSeleccionado,
+                Cantidad = Cantidad,
+                Costo = PrecioProducto
             });
-            Cantidad = 0;
 
         }
+        Cantidad = 0;
+        PrecioProducto = 0;
+        ProductoSeleccionado = 0;
         CalcularMonto();
 
     }
@@ -259,6 +286,16 @@
         {
             throw;
         }
+    }
+
+    private void EncontrarCosto()
+    {
+        var auxProducto = ProductosBLL.Buscar(ProductoSeleccionado);
+        if (auxProducto != null)
+        {
+            PrecioProducto = auxProducto.Costo;
+        }
+
     }
 
     public void Eliminar()
